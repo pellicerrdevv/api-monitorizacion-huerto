@@ -7,6 +7,7 @@ import {
 import { IUser, UserModel } from "../models/user.model.js";
 import { RegisterDTO, LoginDTO } from "../schemas/auth.schema.js";
 import { AuthResult, PublicUser } from "../types/auth.types.js";
+import { ADMIN_EMAIL, ADMIN_PASSWORD } from "../config/env.js";
 
 export const toPublicUser = (user: IUser): PublicUser => {
   return {
@@ -53,6 +54,21 @@ export class AuthService {
       role: user.role,
     });
     return { token, user: toPublicUser(user) };
+  }
+
+  async ensureAdminUser(): Promise<void> {
+    let admin = await UserModel.findOne({ email: ADMIN_EMAIL });
+    if (admin) return;
+
+    const passwordHash = await bcrypt.hash(ADMIN_PASSWORD, 10);
+    admin = await UserModel.create({
+      email: ADMIN_EMAIL,
+      passwordHash,
+      fullName: "Administrador",
+      role: "admin",
+    });
+
+    console.log("Usuario administrador creado");
   }
 }
 
