@@ -5,6 +5,7 @@ import type {
   UpdateSensorDTO,
 } from "../schemas/sensor.schema.js";
 import type { ISensor } from "../models/sensor.model.js";
+import { ReadingModel } from "../models/reading.model.js";
 
 export class SensorsService {
   async getAllSensors(): Promise<ISensor[]> {
@@ -43,10 +44,16 @@ export class SensorsService {
   }
 
   async deleteSensor(id: string): Promise<void> {
-    const sensorEliminado = await SensorModel.findByIdAndDelete(id).exec();
-    if (!sensorEliminado) {
+    const sensor = await SensorModel.findById(id);
+    if (!sensor)
       throw new NotFoundError(`No se ha encontrado el sensor con id: ${id}`);
+    const readings = await ReadingModel.exists({ sensor: sensor.id });
+    if (readings) {
+      throw new ConflictError(
+        "No se puede eliminar un sensor con lecturas registradas. Hay que desactivarlo con isActive = false",
+      );
     }
+    await SensorModel.findByIdAndDelete(sensor.id);
   }
 }
 
