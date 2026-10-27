@@ -11,13 +11,145 @@
       "description": "Servidor local"
     }
   ],
-  "paths": {},
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "tags": ["Autenticación"],
+        "summary": "Registrar un nuevo usuario",
+        "description": "Crea un usuario con rol 'user'. El rol no se puede elegir: si se envía, la petición se rechaza con 400.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RegisterRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Usuario creado. Devuelve el token y el usuario."
+          },
+          "400": {
+            "description": "Datos inválidos (formato, contraseña débil o campos no permitidos como role)",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "409": {
+            "description": "El email ya está registrado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": ["Autenticación"],
+        "summary": "Iniciar sesión con un usuario existente",
+        "description": "Comprueba las credenciales y devuelve un token JWT que tiene validez durante 8 horas",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LoginRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Inicio de sesión correcto. Devuelve el token y el usuario."
+          },
+          "400": {
+            "description": "Datos inválidos: email con un formato incorrecto, contraseña vacía o JSON mal escrito",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Credenciales inválidas: email inexistente o contraseña incorrecta.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
   "components": {
     "securitySchemes": {
       "bearerAuth": {
         "type": "http",
         "scheme": "bearer",
         "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string", "example": "fail" },
+          "error": { "type": "string", "example": "ValidationError" },
+          "message": { "type": "string" },
+          "details": { "type": "array", "items": { "type": "object" } }
+        }
+      },
+      "PublicUser": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "example": "6adf1f1ceaf276071906db1c" },
+          "email": { "type": "string", "example": "ana@huerto.com" },
+          "fullName": { "type": "string", "example": "Ana López" },
+          "role": { "type": "string", "enum": ["user", "admin"] }
+        }
+      },
+      "RegisterRequest": {
+        "type": "object",
+        "required": ["email", "password", "fullName"],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "ana@huerto.com"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "description": "Mínimo 8 caracteres, con mayúscula, minúscula, número y símbolo",
+            "example": "Huerto2026!"
+          },
+          "fullName": {
+            "type": "string",
+            "minLength": 3,
+            "example": "Ana López"
+          }
+        },
+        "additionalProperties": false
+      },
+      "LoginRequest": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "ana@huerto.com"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 1,
+            "example": "Huerto2026!"
+          }
+        }
       }
     }
   }
