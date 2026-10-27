@@ -7,6 +7,8 @@ import {
 import authRoutes from "./routes/auth.routes.js";
 import sensorsRoutes from "./routes/sensors.routes.js";
 import readingRoutes from "./routes/readings.routes.js";
+import swaggerUi from "swagger-ui-express";
+import openapiSpec from "./docs/openapi.json" with { type: "json" };
 
 export const app = express();
 
@@ -19,7 +21,7 @@ app.get("/api/health", (_req: Request, res: Response) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/sensors", sensorsRoutes);
 app.use("/api/readings", readingRoutes);
-//app.use("/api/docs", documentsRoutes);
+app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(openapiSpec));
 
 app.use(notFoundHandler);
 app.use(globalErrorHandler);
