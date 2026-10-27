@@ -6,6 +6,7 @@ import {
 } from "./middlewares/error.middleware.js";
 import authRoutes from "./routes/auth.routes.js";
 import sensorsRoutes from "./routes/sensors.routes.js";
+import readingRoutes from "./routes/readings.routes.js";
 
 export const app = express();
 
@@ -17,7 +18,7 @@ app.get("/api/health", (_req: Request, res: Response) => {
 // Rutas de la aplicación
 app.use("/api/auth", authRoutes);
 app.use("/api/sensors", sensorsRoutes);
-//app.use("/api/readings", readingRoutes);
+app.use("/api/readings", readingRoutes);
 //app.use("/api/docs", documentsRoutes);
 
 app.use(notFoundHandler);

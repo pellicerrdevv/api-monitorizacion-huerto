@@ -15,6 +15,8 @@ import {
   updateSensor,
   deleteSensor,
 } from "../controllers/sensors.controller.js";
+import { CreateReadingSchema } from "../schemas/reading.schema.js";
+import { createReading } from "../controllers/readings.controller.js";
 
 const sensorsRoutes = Router();
 sensorsRoutes.use(authenticateToken);
@@ -34,5 +36,9 @@ sensorsRoutes.patch(
   updateSensor,
 );
 sensorsRoutes.delete("/:id", authorizeRoles("admin"), deleteSensor);
-
+sensorsRoutes.post(
+  "/:sensorId/readings",
+  validateBody(CreateReadingSchema),
+  createReading,
+);
 export default sensorsRoutes;
