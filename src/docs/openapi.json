@@ -244,14 +244,6 @@
               }
             }
           },
-          "403": {
-            "description": "El usuario no tiene permisos de administrador para modificar un sensor",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
-              }
-            }
-          },
           "404": {
             "description": "No existe ningún sensor con ese id",
             "content": {
@@ -373,6 +365,185 @@
           },
           "409": {
             "description": "El sensor tiene lecturas ya registradas y no se puede eliminar. El sensor tiene que desactivarse con isActive = false",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sensors/{sensorId}/readings": {
+      "parameters": [
+        {
+          "name": "sensorId",
+          "in": "path",
+          "required": true,
+          "description": "ID del sensor (ObjectId)",
+          "schema": { "type": "string", "example": "6adfd819e7ae2cc2925f9451" }
+        }
+      ],
+      "post": {
+        "tags": ["Lecturas"],
+        "summary": "Registrar una lectura de un sensor (cualquier usuario autenticado)",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CreateReadingRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Lectura registrada. isAnomalous lo calcula el servidor comparando value con el threshold del sensor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "data": { "$ref": "#/components/schemas/Reading" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos: value no numérico, id con formato incorrecto o campos no admitidos, como isAnomalous",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin token o token inválido/caducado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "No existe ningún sensor con ese id",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "409": {
+            "description": "El sensor está inactivo y no admite lecturas",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "422": {
+            "description": "La unidad no coincide con la del sensor",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/readings": {
+      "get": {
+        "tags": ["Lecturas"],
+        "summary": "Consultar el histórico de lecturas (paginado, filtrable y ordenable)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "description": "Número de página",
+            "schema": { "type": "integer", "minimum": 1, "default": 1 }
+          },
+          {
+            "name": "magnitude",
+            "in": "query",
+            "required": false,
+            "description": "Filtrar por magnitud del sensor",
+            "schema": {
+              "type": "string",
+              "enum": ["soil_moisture", "temperature", "light", "air_humidity"]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Lecturas por página (máximo 50)",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 10
+            }
+          },
+          {
+            "name": "sensor",
+            "in": "query",
+            "description": "ID del sensor(ObjectId)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "anomalous",
+            "in": "query",
+            "description": "true = solo anómalas, false = solo normales",
+            "schema": {
+              "type": "string",
+              "enum": ["true", "false"]
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "Campo de ordenación; el prefijo - indica que es de orden descendente",
+            "schema": {
+              "type": "string",
+              "enum": ["measuredAt", "-measuredAt", "value", "-value"],
+              "default": "-measuredAt"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Página de lecturas que cumplen los filtros, en el orden indicado, con los metadatos de paginación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Reading" }
+                    },
+                    "meta": { "$ref": "#/components/schemas/PaginationMeta" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos: página no numérica, limit mayor que 50, magnitud o sort no permitidos...",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin token o token inválido/caducado",
             "content": {
               "application/json": {
                 "schema": { "$ref": "#/components/schemas/ErrorResponse" }
@@ -521,6 +692,72 @@
           "unit": { "type": "string", "example": "%" },
           "createdAt": { "type": "string", "format": "date-time" },
           "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "SensorSummary": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string", "example": "6adfd819e7ae2cc2925f9451" },
+          "code": { "type": "string", "example": "HUM-01" },
+          "magnitude": {
+            "type": "string",
+            "enum": ["soil_moisture", "temperature", "light", "air_humidity"],
+            "example": "soil_moisture"
+          },
+          "location": { "type": "string", "example": "Parcela 3 - Pimientos" },
+          "unit": { "type": "string", "example": "%" }
+        }
+      },
+      "Reading": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string", "example": "6adfdf1ce7ae2cc2925f9453" },
+          "sensor": {
+            "description": "Al crear se devuelve el ObjectId del sensor; en el listado viene con sus datos (populate)",
+            "oneOf": [
+              { "type": "string", "example": "6adfd819e7ae2cc2925f9451" },
+              { "$ref": "#/components/schemas/SensorSummary" }
+            ]
+          },
+          "value": { "type": "number", "example": 45 },
+          "unit": { "type": "string", "example": "%" },
+          "measuredAt": { "type": "string", "format": "date-time" },
+          "isAnomalous": {
+            "type": "boolean",
+            "example": true,
+            "description": "Es calculado por el servidor: value > threshold del sensor"
+          },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "CreateReadingRequest": {
+        "type": "object",
+        "required": ["value"],
+        "description": "El cliente no puede enviar isAnomalous ya que es el servidor quien lo calcula",
+        "example": { "value": 45 },
+        "properties": {
+          "value": { "type": "number", "example": 30 },
+          "unit": { "type": "string", "example": "%" },
+          "measuredAt": { "type": "string", "format": "date-time" }
+        },
+        "additionalProperties": false
+      },
+      "PaginationMeta": {
+        "type": "object",
+        "properties": {
+          "total": { "type": "integer" },
+          "page": { "type": "integer" },
+          "limit": { "type": "integer" },
+          "totalPages": { "type": "integer" },
+          "hasNextPage": { "type": "boolean" },
+          "hasPrevPage": { "type": "boolean" },
+          "next": {
+            "type": "string",
+            "nullable": true,
+            "example": "?page=2&limit=2&magnitude=soil_moisture&sort=-measuredAt"
+          },
+          "prev": { "type": "string", "nullable": true }
         }
       }
     }
