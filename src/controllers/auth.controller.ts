@@ -12,7 +12,9 @@ export const register = async (req: Request, res: Response) => {
 
 export const login = async (req: Request, res: Response) => {
   const { token, user } = await authService.login(req.body);
-  res
-    .status(200)
-    .json({ status: "success", data: { token: token, user: user } });
+  res.status(200).json({
+    status: "success",
+    message: "Inicio de sesión correcto",
+    data: { token: token, user: user },
+  });
 };

@@ -27,7 +27,12 @@
         },
         "responses": {
           "201": {
-            "description": "Usuario creado. Devuelve el token y el usuario."
+            "description": "Usuario creado. Devuelve el token y el usuario.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthResponse" }
+              }
+            }
           },
           "400": {
             "description": "Datos inválidos (formato, contraseña débil o campos no permitidos como role)",
@@ -63,7 +68,12 @@
         },
         "responses": {
           "200": {
-            "description": "Inicio de sesión correcto. Devuelve el token y el usuario."
+            "description": "Inicio de sesión correcto. Devuelve el token y el usuario.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthResponse" }
+              }
+            }
           },
           "400": {
             "description": "Datos inválidos: email con un formato incorrecto, contraseña vacía o JSON mal escrito",
@@ -112,6 +122,26 @@
           "role": { "type": "string", "enum": ["user", "admin"] }
         }
       },
+      "AuthResponse": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string", "example": "success" },
+          "message": {
+            "type": "string",
+            "example": "Operación realizada con éxito"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "token": {
+                "type": "string",
+                "example": "eyJhbGciOiJIUzI1NiIsInR5cCi6iKP..."
+              },
+              "user": { "$ref": "#/components/schemas/PublicUser" }
+            }
+          }
+        }
+      },
       "RegisterRequest": {
         "type": "object",
         "required": ["email", "password", "fullName"],
@@ -149,6 +179,60 @@
             "minLength": 1,
             "example": "Huerto2026!"
           }
+        }
+      },
+      "CreateSensorRequest": {
+        "type": "object",
+        "required": ["code", "magnitude", "location", "threshold", "unit"],
+        "properties": {
+          "code": { "type": "string", "example": "HUM-02" },
+          "magnitude": {
+            "type": "string",
+            "enum": ["soil_moisture", "temperature", "light", "air_humidity"],
+            "example": "soil_moisture"
+          },
+          "location": { "type": "string", "example": "Solar 3 - Pimientos" },
+          "isActive": { "type": "boolean", "example": true },
+          "threshold": { "type": "number", "example": 30 },
+          "unit": { "type": "string", "example": "%" }
+        },
+        "additionalProperties": false
+      },
+      "UpdateSensorRequest": {
+        "type": "object",
+        "minProperties": 1,
+        "example": { "threshold": 25 },
+        "properties": {
+          "code": { "type": "string", "example": "HUM-02" },
+          "magnitude": {
+            "type": "string",
+            "enum": ["soil_moisture", "temperature", "light", "air_humidity"],
+            "example": "soil_moisture"
+          },
+          "location": { "type": "string", "example": "Solar 3 - Pimientos" },
+          "isActive": { "type": "boolean", "example": true },
+          "threshold": { "type": "number", "example": 30 },
+          "unit": { "type": "string", "example": "%" }
+        },
+        "additionalProperties": false
+      },
+      "Sensor": {
+        "type": "object",
+        "required": ["code", "magnitude", "location", "threshold", "unit"],
+        "properties": {
+          "_id": { "type": "string", "example": "6adfd819e7ae2cc2925f9451" },
+          "code": { "type": "string", "example": "HUM-02" },
+          "magnitude": {
+            "type": "string",
+            "enum": ["soil_moisture", "temperature", "light", "air_humidity"],
+            "example": "soil_moisture"
+          },
+          "location": { "type": "string", "example": "Parcela 3 - Pimientos" },
+          "isActive": { "type": "boolean", "example": true },
+          "threshold": { "type": "number", "example": 30 },
+          "unit": { "type": "string", "example": "%" },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "updatedAt": { "type": "string", "format": "date-time" }
         }
       }
     }
