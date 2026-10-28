@@ -198,6 +198,189 @@
           }
         }
       }
+    },
+    "/sensors/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "description": "ID del sensor (ObjectId de MongoDB)",
+          "schema": { "type": "string", "example": "6adfd819e7ae2cc2925f9451" }
+        }
+      ],
+      "get": {
+        "tags": ["Sensores"],
+        "summary": "Obtener el detalle de un sensor",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Datos del sensor",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "data": { "$ref": "#/components/schemas/Sensor" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "El id no tiene formato de ObjectId válido",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin token o token inválido/caducado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "403": {
+            "description": "El usuario no tiene permisos de administrador para modificar un sensor",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "No existe ningún sensor con ese id",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": ["Sensores"],
+        "summary": "Modificar parcialmente un sensor (solo el administrador es capaz de hacerlo)",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UpdateSensorRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Sensor modificado. El sensor ya se devuelve actualizado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "success" },
+                    "data": { "$ref": "#/components/schemas/Sensor" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos inválidos: id con un formato incorrecto, body vacío (hay que enviar al menos un campo), valores con un formato incorrecto o campos que no están admitidos",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin token o token inválido/caducado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "403": {
+            "description": "El usuario no tiene permisos de administrador para modificar un sensor",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "No existe ningún sensor con ese id",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "409": {
+            "description": "El nuevo código ya está siendo usado por otro sensor",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Sensores"],
+        "summary": "Eiminar un sensor(solo es capaz de hacerlo el administrador)",
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "204": {
+            "description": "Sensor eliminado correctamente. No devuelve contenido"
+          },
+          "400": {
+            "description": "El id no tiene formato de ObjectId válido",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "401": {
+            "description": "Sin token o token inválido/caducado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "403": {
+            "description": "El usuario no tiene permisos de administrador para eliminar un sensor",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "404": {
+            "description": "No existe ningún sensor con ese id",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          },
+          "409": {
+            "description": "El sensor tiene lecturas ya registradas y no se puede eliminar. El sensor tiene que desactivarse con isActive = false",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
