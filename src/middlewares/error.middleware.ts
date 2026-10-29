@@ -3,7 +3,6 @@ import { ZodError } from "zod";
 import { AppError } from "../errors/app.error.js";
 import { NODE_ENV } from "../config/env.js";
 import mongoose from "mongoose";
-import { parse } from "node:path";
 
 export const notFoundHandler = (req: Request, res: Response) => {
   res.status(404).json({
